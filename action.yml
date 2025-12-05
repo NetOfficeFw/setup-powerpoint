@@ -1,0 +1,9 @@
+name: 'Setup Microsoft PowerPoint for Mac'
+description: 'Set up Microsoft PowerPoint for Mac in the GitHub Actions runner.'
+author: 'Cisco Systems, Inc.'
+branding:
+  icon: play
+  color: orange
+runs:
+  using: 'node24'
+  main: 'dist/index.js'

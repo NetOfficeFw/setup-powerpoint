@@ -1,6 +1,6 @@
 # setup-powerpoint
 
-> Action to setup Microsoft PowerPoint in GitHub Actions runner.
+> Action to setup Microsoft PowerPoint for Mac in GitHub Actions runner.
 
 
 ## License
