@@ -26,6 +26,17 @@ jobs:
             exit 1
           fi
           echo "Microsoft PowerPoint is installed"
+      
+      - name: troubleshoot desktop
+        run: |
+          screencapture ./desktop.png
+
+      - name: upload desktop screenshot
+        uses: actions/upload-artifact@v5
+        with:
+          name: desktop-screenshot
+          path: desktop.png
+
 
   verify-ubuntu:
     name: Verify on Ubuntu runner

@@ -29983,6 +29983,8 @@ const external_node_os_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import
 var external_node_crypto_ = __nccwpck_require__(7598);
 ;// CONCATENATED MODULE: external "node:path"
 const external_node_path_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:path");
+;// CONCATENATED MODULE: external "node:timers/promises"
+const promises_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:timers/promises");
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(7484);
 // EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
@@ -29994,6 +29996,7 @@ var tool_cache = __nccwpck_require__(3472);
 ;// CONCATENATED MODULE: ./src/index.js
 // Copyright 2025 Cisco Systems, Inc.
 // Licensed under MIT-style license (see LICENSE.txt file).
+
 
 
 
@@ -30034,6 +30037,7 @@ async function run() {
   await reportInstalledVersion(powerpointAppPath);
   await configurePowerPointPolicies();
   await enableUiAutomation();
+  await dismissPowerPointFirstRunDialogs();
 }
 
 async function downloadInstaller() {
@@ -30168,6 +30172,34 @@ async function configurePowerPointPolicies() {
   }
 }
 
+
+//  echo "Launching Microsoft PowerPoint..."
+//           open -a '/Applications/Microsoft PowerPoint.app'
+//           sleep 5  # Wait for PowerPoint to start launching
+//           echo "Microsoft PowerPoint launched"
+
+async function dismissPowerPointFirstRunDialogs() {
+  core.startGroup('Launch Microsoft PowerPoint');
+  try {
+    core.info('Launching Microsoft PowerPoint...');
+    await exec.exec('open', ['-a', '/Applications/Microsoft PowerPoint.app']);
+    core.info('Waiting for PowerPoint to initialize...');
+    await (0,promises_namespaceObject.setTimeout)(5000); // Wait for 5 seconds for PowerPoint to start launching
+    core.info('Microsoft PowerPoint launched.');
+  } finally {
+    core.endGroup();
+  }
+
+  core.startGroup('Dismiss Microsoft PowerPoint First Run Dialogs');
+  try {
+    core.info('Dismissing PowerPoint privacy modal dialog...');
+    const scriptsDir = external_node_path_namespaceObject.join(import.meta.dirname, '..', 'scripts');
+    await exec.exec('bash', ['dismiss_privacy_modal.sh'], { cwd: scriptsDir });
+  }
+  finally {
+    core.endGroup();
+  }
+}
 
 async function readPlistValue(plistPath, key) {
   try {

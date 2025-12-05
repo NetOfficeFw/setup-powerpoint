@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import * as crypto from 'node:crypto';
 import path from 'node:path';
+import { setTimeout } from 'node:timers/promises';
 
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
@@ -40,6 +41,7 @@ async function run() {
   await reportInstalledVersion(powerpointAppPath);
   await configurePowerPointPolicies();
   await enableUiAutomation();
+  await dismissPowerPointFirstRunDialogs();
 }
 
 async function downloadInstaller() {
@@ -174,6 +176,34 @@ async function configurePowerPointPolicies() {
   }
 }
 
+
+//  echo "Launching Microsoft PowerPoint..."
+//           open -a '/Applications/Microsoft PowerPoint.app'
+//           sleep 5  # Wait for PowerPoint to start launching
+//           echo "Microsoft PowerPoint launched"
+
+async function dismissPowerPointFirstRunDialogs() {
+  core.startGroup('Launch Microsoft PowerPoint');
+  try {
+    core.info('Launching Microsoft PowerPoint...');
+    await exec.exec('open', ['-a', '/Applications/Microsoft PowerPoint.app']);
+    core.info('Waiting for PowerPoint to initialize...');
+    await setTimeout(5000); // Wait for 5 seconds for PowerPoint to start launching
+    core.info('Microsoft PowerPoint launched.');
+  } finally {
+    core.endGroup();
+  }
+
+  core.startGroup('Dismiss Microsoft PowerPoint First Run Dialogs');
+  try {
+    core.info('Dismissing PowerPoint privacy modal dialog...');
+    const scriptsDir = path.join(import.meta.dirname, '..', 'scripts');
+    await exec.exec('bash', ['dismiss_privacy_modal.sh'], { cwd: scriptsDir });
+  }
+  finally {
+    core.endGroup();
+  }
+}
 
 async function readPlistValue(plistPath, key) {
   try {
