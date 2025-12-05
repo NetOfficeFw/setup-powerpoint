@@ -17,15 +17,43 @@ jobs:
         uses: actions/checkout@v6
 
       - name: run setup-powerpoint
+        id: setup
         uses: ./
 
       - name: verify installation
         run: |
-          if [ ! -d "/Applications/Microsoft PowerPoint.app" ]; then
-            echo "Microsoft PowerPoint is not installed"
+          expected_path="/Applications/Microsoft PowerPoint.app"
+          expected_package="Microsoft_PowerPoint_16.103.25113013_Updater.pkg"
+          expected_url="https://officecdn.microsoft.com/pr/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/${expected_package}"
+          expected_version='16.103.3'
+          expected_build='25113013'
+
+          if [ "${{ steps.setup.outputs.path }}" != "$expected_path" ]; then
+            echo "Action output 'path' was '${{ steps.setup.outputs.path }}' but expected '$expected_path'"
             exit 1
           fi
-          echo "Microsoft PowerPoint is installed"
+
+          if [ "${{ steps.setup.outputs.version }}" != "$expected_version" ]; then
+            echo "Action output 'version' was '${{ steps.setup.outputs.version }}' but expected '$expected_version'"
+            exit 1
+          fi
+
+          if [ "${{ steps.setup.outputs.build }}" != "$expected_build" ]; then
+            echo "Action output 'build' was '${{ steps.setup.outputs.build }}' but expected '$expected_build'"
+            exit 1
+          fi
+
+          if [ "${{ steps.setup.outputs.package }}" != "$expected_package" ]; then
+            echo "Action output 'package' was '${{ steps.setup.outputs.package }}' but expected '$expected_package'"
+            exit 1
+          fi
+
+          if [ "${{ steps.setup.outputs.installer-url }}" != "$expected_url" ]; then
+            echo "Action output 'installer-url' was '${{ steps.setup.outputs.installer-url }}' but expected '$expected_url'"
+            exit 1
+          fi
+
+          echo "Action outputs match installed Microsoft PowerPoint metadata"
       
       - name: troubleshoot desktop
         run: |
