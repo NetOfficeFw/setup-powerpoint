@@ -37,6 +37,30 @@ jobs:
           name: desktop-screenshot
           path: desktop.png
 
+  verify-macos-custom-package:
+    name: Verify on macOS runner (custom installer package)
+    runs-on: macos-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: run setup-powerpoint
+        uses: ./
+        with:
+          package: Microsoft_PowerPoint_16.102.25101829_Updater.pkg
+
+      - name: verify custom release
+        run: |
+          if [ ! -d "/Applications/Microsoft PowerPoint.app" ]; then
+            echo "Microsoft PowerPoint is not installed"
+            exit 1
+          fi
+          version=$(defaults read "/Applications/Microsoft PowerPoint.app/Contents/Info.plist" CFBundleShortVersionString || true)
+          if [ "$version" != "16.102.1" ]; then
+            echo "Unexpected PowerPoint version: '$version' (expected 16.102.1)"
+            exit 1
+          fi
+          echo "Microsoft PowerPoint version is $version"
 
   verify-ubuntu:
     name: Verify on Ubuntu runner
