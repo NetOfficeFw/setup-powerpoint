@@ -32,6 +32,16 @@ jobs:
           ls "/Applications/Microsoft PowerPoint.app"
 ```
 
+### Action Outputs
+
+The `setup-powerpoint` action will output these variables:
+
+- `path`: Installation path of Microsoft PowerPoint (e.g., `/Applications/Microsoft PowerPoint.app`).
+- `version`: Installed Microsoft PowerPoint version (`CFBundleShortVersionString`).
+- `build`: Build number (last component of `CFBundleVersion`).
+- `package`: Installer package file name used during installation.
+- `installer-url`: Full URL used to download the installer.
+
 
 ## License
 
