@@ -22,6 +22,9 @@ jobs:
 
       - name: Install Microsoft PowerPoint for Mac
         uses: NetOfficeFw/setup-powerpoint@v1
+        # Optional: install a different Microsoft PowerPoint release
+        # with:
+        #   package: Microsoft_PowerPoint_16.103.25113013_Updater.pkg
 
       - name: Run automation
         run: |

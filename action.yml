@@ -4,6 +4,11 @@ author: 'Cisco Systems, Inc.'
 branding:
   icon: play
   color: orange
+inputs:
+  package:
+    description: 'Optional custom Microsoft PowerPoint installer package name (.pkg)'
+    required: false
+    default: 'Microsoft_PowerPoint_16.103.25113013_Updater.pkg'
 runs:
   using: 'node24'
   main: 'dist/index.js'

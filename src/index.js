@@ -12,9 +12,8 @@ import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 import * as tc from '@actions/tool-cache';
 
-const POWERPOINT_PACKAGE_NAME = 'Microsoft_PowerPoint_16.102.25101829_Updater.pkg';
-const INSTALLER_URL =
-  `https://officecdn.microsoft.com/pr/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate/${POWERPOINT_PACKAGE_NAME}`;
+const POWERPOINT_PACKAGE_NAME = 'Microsoft_PowerPoint_16.103.25113013_Updater.pkg';
+const DEFAULT_MAC_AUTOUPDATE_BASE_URL = 'https://officecdn.microsoft.com/pr/C1297A47-86C4-4C1F-97FA-950631F94777/MacAutoupdate';
 
 async function main() {
   try {
@@ -36,7 +35,8 @@ async function run() {
 
   core.info('Setting up Microsoft PowerPoint for Mac');
 
-  const installerPath = await downloadInstaller();
+  const installerSource = resolveInstallerSource();
+  const installerPath = await downloadInstaller(installerSource);
   const powerpointAppPath = await installPowerPoint(installerPath);
   await reportInstalledVersion(powerpointAppPath);
   await configurePowerPointPolicies();
@@ -44,14 +44,26 @@ async function run() {
   await dismissPowerPointFirstRunDialogs();
 }
 
-async function downloadInstaller() {
+function resolveInstallerSource() {
+  const packageName = core.getInput('package', { trimWhitespace: true });
+
+  if (!packageName) {
+    core.debug('Using default Microsoft PowerPoint installer package.');
+    packageName = POWERPOINT_PACKAGE_NAME;
+  }
+
+  core.info(`Microsoft PowerPoint installer package name: '${packageName}'`);
+  return { url: `${DEFAULT_MAC_AUTOUPDATE_BASE_URL}/${packageName}`, packageName: packageName };
+}
+
+async function downloadInstaller(installerSource) {
   core.startGroup('Download Installer');
   try {
     core.info(`Downloading Microsoft PowerPoint installer package...`);
     const tempDirectory = process.env['RUNNER_TEMP'] || os.tmpdir();
-    const targetPath = path.join(tempDirectory, crypto.randomUUID(), POWERPOINT_PACKAGE_NAME);
+    const targetPath = path.join(tempDirectory, crypto.randomUUID(), installerSource.packageName);
     
-    const downloadedPath = await tc.downloadTool(INSTALLER_URL, targetPath);
+    const downloadedPath = await tc.downloadTool(installerSource.url, targetPath);
     core.info('Installer package downloaded successfully.');
     
     return downloadedPath;
