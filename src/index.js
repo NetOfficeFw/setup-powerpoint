@@ -34,7 +34,8 @@ async function run() {
   core.info('Setting up Microsoft PowerPoint for Mac');
 
   const installerPath = await downloadInstaller();
-  await installPowerPoint(installerPath);
+  const powerpointAppPath = await installPowerPoint(installerPath);
+  await reportInstalledVersion(powerpointAppPath);
 }
 
 async function downloadInstaller() {
@@ -61,8 +62,33 @@ async function installPowerPoint(installerPath) {
     if (exitCode !== 0) {
       throw new Error(`Microsoft PowerPoint installation failed with code ${exitCode}.`);
     }
+
+    return '/Applications/Microsoft PowerPoint.app';
   } finally {
     core.endGroup();
+  }
+}
+
+async function reportInstalledVersion( powerpointAppPath) {
+  const powerpointPlistPath = `${powerpointAppPath}/Contents/Info.plist`;
+  const version = await readPlistValue(powerpointPlistPath, 'CFBundleShortVersionString');
+  const buildRaw = await readPlistValue(powerpointPlistPath, 'CFBundleVersion');
+  const build = buildRaw ? buildRaw.split('.').pop() : '(unknown)';
+
+  core.notice(`Microsoft PowerPoint version ${version} (${build})`);
+}
+
+async function readPlistValue(plistPath, key) {
+  try {
+    const { exitCode, stdout } = await exec.getExecOutput('defaults', ['read', plistPath, key]);
+    if (exitCode !== 0) {
+      core.error(`Failed to read '${plistPath}' key '${key}'. Exit code: ${exitCode}`);
+    }
+
+    return stdout.trim();
+  } catch (error) {
+    core.error(`Failed to read '${plistPath}' key '${key}'. Error: ${error.message}`);
+    return '(unknown)';
   }
 }
 
