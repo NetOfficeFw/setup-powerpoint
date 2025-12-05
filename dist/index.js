@@ -29975,6 +29975,8 @@ module.exports = parseParams
 /************************************************************************/
 var __webpack_exports__ = {};
 
+;// CONCATENATED MODULE: external "node:fs"
+const external_node_fs_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs");
 ;// CONCATENATED MODULE: external "node:os"
 const external_node_os_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:os");
 // EXTERNAL MODULE: external "node:crypto"
@@ -29990,6 +29992,7 @@ var tool_cache = __nccwpck_require__(3472);
 ;// CONCATENATED MODULE: ./src/index.js
 // Copyright 2025 Cisco Systems, Inc.
 // Licensed under MIT-style license (see LICENSE.txt file).
+
 
 
 
@@ -30026,6 +30029,7 @@ async function run() {
   const installerPath = await downloadInstaller();
   const powerpointAppPath = await installPowerPoint(installerPath);
   await reportInstalledVersion(powerpointAppPath);
+  await configurePowerPointPolicies();
 }
 
 async function downloadInstaller() {
@@ -30067,6 +30071,34 @@ async function reportInstalledVersion( powerpointAppPath) {
 
   core.notice(`Microsoft PowerPoint version ${version} (${build})`);
 }
+
+
+async function configurePowerPointPolicies() {
+  core.startGroup('Configure Microsoft PowerPoint policies');
+  try {
+    const policiesDir = external_node_path_namespaceObject.join(import.meta.dirname, '..', 'policies');
+    const policyScripts = [
+      'policy_ms_autoupdate.sh',
+      'policy_ms_office.sh',
+      'policy_ms_powerpoint.sh',
+    ];
+
+    for (const script of policyScripts) {
+      const scriptPath = external_node_path_namespaceObject.join(policiesDir, script);
+      if (!external_node_fs_namespaceObject.existsSync(scriptPath)) {
+        core.info(`Skipping policy script '${script}' as it does not exist.`);
+        continue;
+      }
+      
+      core.info(`Applying policy script '${script}'...`);
+      core.debug(`Executing script at path: '${scriptPath}'`);
+      await exec.exec('bash', [scriptPath], { cwd: policiesDir });
+    }
+  } finally {
+    core.endGroup();
+  }
+}
+
 
 async function readPlistValue(plistPath, key) {
   try {

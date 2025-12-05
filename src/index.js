@@ -1,6 +1,7 @@
 // Copyright 2025 Cisco Systems, Inc.
 // Licensed under MIT-style license (see LICENSE.txt file).
 
+import fs from 'node:fs';
 import os from 'node:os';
 import * as crypto from 'node:crypto';
 import path from 'node:path';
@@ -36,6 +37,7 @@ async function run() {
   const installerPath = await downloadInstaller();
   const powerpointAppPath = await installPowerPoint(installerPath);
   await reportInstalledVersion(powerpointAppPath);
+  await configurePowerPointPolicies();
 }
 
 async function downloadInstaller() {
@@ -77,6 +79,34 @@ async function reportInstalledVersion( powerpointAppPath) {
 
   core.notice(`Microsoft PowerPoint version ${version} (${build})`);
 }
+
+
+async function configurePowerPointPolicies() {
+  core.startGroup('Configure Microsoft PowerPoint policies');
+  try {
+    const policiesDir = path.join(import.meta.dirname, '..', 'policies');
+    const policyScripts = [
+      'policy_ms_autoupdate.sh',
+      'policy_ms_office.sh',
+      'policy_ms_powerpoint.sh',
+    ];
+
+    for (const script of policyScripts) {
+      const scriptPath = path.join(policiesDir, script);
+      if (!fs.existsSync(scriptPath)) {
+        core.info(`Skipping policy script '${script}' as it does not exist.`);
+        continue;
+      }
+      
+      core.info(`Applying policy script '${script}'...`);
+      core.debug(`Executing script at path: '${scriptPath}'`);
+      await exec.exec('bash', [scriptPath], { cwd: policiesDir });
+    }
+  } finally {
+    core.endGroup();
+  }
+}
+
 
 async function readPlistValue(plistPath, key) {
   try {
