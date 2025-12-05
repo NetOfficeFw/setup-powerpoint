@@ -19,6 +19,14 @@ jobs:
       - name: run setup-powerpoint
         uses: ./
 
+      - name: verify installation
+        run: |
+          if [ ! -d "/Applications/Microsoft PowerPoint.app" ]; then
+            echo "Microsoft PowerPoint is not installed"
+            exit 1
+          fi
+          echo "Microsoft PowerPoint is installed"
+
   verify-ubuntu:
     name: Verify on Ubuntu runner
     runs-on: ubuntu-latest
