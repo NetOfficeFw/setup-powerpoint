@@ -30083,12 +30083,16 @@ async function enableUiAutomation() {
 
     const insertStatement = `INSERT or REPLACE INTO access (service, client, client_type, auth_value, auth_reason, auth_version, csreq) `+
       `VALUES('${serviceName}','${bundleId}',${clientType},${authValue},${authReason},${authVersion},X'${csreqHex}');`;
-    const sqliteExitCode = await exec.exec('sudo', ['sqlite3', tccDatabasePath, insertStatement], {
-      ignoreReturnCode: true,
-    });
 
-    if (sqliteExitCode !== 0) {
-      core.error('Failed to enable user interface automation for Terminal.app. The TCC.db was not updated.');
+    const { exitCode, stderr, stdout } = await exec.getExecOutput('sudo', [
+      'sqlite3',
+      tccDatabasePath,
+      insertStatement,
+    ], { ignoreReturnCode: true, failOnStdErr: false });
+
+    if (exitCode !== 0) {
+      const message = (stderr || stdout || '(unknown SQLite error)').trim();
+      throw new Error(`Failed to apply changes to TCC.db database. Exit code ${exitCode}. ${message}`);
     } else {
       core.info('Granted permission to Terminal.app to automate user interface.');
     }
