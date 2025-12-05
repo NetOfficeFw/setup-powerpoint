@@ -31076,22 +31076,25 @@ async function run() {
   const installerSource = resolveInstallerSource();
   const installerPath = await downloadInstaller(installerSource);
   const powerpointAppPath = await installPowerPoint(installerPath);
-  await reportInstalledVersion(powerpointAppPath);
+  const versionInfo = await reportInstalledVersion(powerpointAppPath);
   await configurePowerPointPolicies();
   await enableUiAutomation();
   await dismissPowerPointFirstRunDialogs();
+  setOutputs({ appPath: powerpointAppPath, versionInfo, installerSource });
 }
 
 function resolveInstallerSource() {
-  const packageName = core.getInput('package', { trimWhitespace: true });
+  let packageName = core.getInput('package', { trimWhitespace: true });
 
   if (!packageName) {
     core.debug('Using default Microsoft PowerPoint installer package.');
     packageName = POWERPOINT_PACKAGE_NAME;
   }
 
+  const url = `${DEFAULT_MAC_AUTOUPDATE_BASE_URL}/${packageName}`;
   core.info(`Microsoft PowerPoint installer package name: '${packageName}'`);
-  return { url: `${DEFAULT_MAC_AUTOUPDATE_BASE_URL}/${packageName}`, packageName: packageName };
+  core.debug(`Microsoft PowerPoint installer URL: '${url}'`);
+  return { url, packageName };
 }
 
 async function downloadInstaller(installerSource) {
@@ -31197,6 +31200,7 @@ async function reportInstalledVersion( powerpointAppPath) {
   const build = buildRaw ? buildRaw.split('.').pop() : '(unknown)';
 
   core.notice(`Microsoft PowerPoint version ${version} (${build})`);
+  return { version, build };
 }
 
 
@@ -31267,6 +31271,14 @@ async function readPlistValue(plistPath, key) {
     core.error(`Failed to read '${plistPath}' key '${key}'. Error: ${error.message}`);
     return '(unknown)';
   }
+}
+
+function setOutputs({ appPath, versionInfo, installerSource }) {
+  core.setOutput('path', appPath);
+  core.setOutput('version', versionInfo?.version ?? '');
+  core.setOutput('build', versionInfo?.build ?? '');
+  core.setOutput('package', installerSource?.packageName ?? '');
+  core.setOutput('installer-url', installerSource?.url ?? '');
 }
 
 main();

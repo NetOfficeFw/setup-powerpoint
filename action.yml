@@ -9,6 +9,17 @@ inputs:
     description: 'Optional custom Microsoft PowerPoint installer package name (.pkg)'
     required: false
     default: 'Microsoft_PowerPoint_16.103.25113013_Updater.pkg'
+outputs:
+  path:
+    description: 'Installation path of Microsoft PowerPoint (e.g., /Applications/Microsoft PowerPoint.app)'
+  version:
+    description: 'Microsoft PowerPoint version (value of CFBundleShortVersionString)'
+  build:
+    description: 'Microsoft PowerPoint build number (last component of CFBundleVersion)'
+  package:
+    description: 'Installer package file name used for installation'
+  installer-url:
+    description: 'Installer URL used for installation'
 runs:
   using: 'node24'
   main: 'dist/index.js'
