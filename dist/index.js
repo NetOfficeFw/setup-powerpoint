@@ -29987,11 +29987,14 @@ const external_node_path_namespaceObject = __WEBPACK_EXTERNAL_createRequire(impo
 var core = __nccwpck_require__(7484);
 // EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
 var exec = __nccwpck_require__(5236);
+// EXTERNAL MODULE: ./node_modules/@actions/io/lib/io.js
+var io = __nccwpck_require__(4994);
 // EXTERNAL MODULE: ./node_modules/@actions/tool-cache/lib/tool-cache.js
 var tool_cache = __nccwpck_require__(3472);
 ;// CONCATENATED MODULE: ./src/index.js
 // Copyright 2025 Cisco Systems, Inc.
 // Licensed under MIT-style license (see LICENSE.txt file).
+
 
 
 
@@ -30030,6 +30033,7 @@ async function run() {
   const powerpointAppPath = await installPowerPoint(installerPath);
   await reportInstalledVersion(powerpointAppPath);
   await configurePowerPointPolicies();
+  await enableUiAutomation();
 }
 
 async function downloadInstaller() {
@@ -30060,6 +30064,67 @@ async function installPowerPoint(installerPath) {
     return '/Applications/Microsoft PowerPoint.app';
   } finally {
     core.endGroup();
+  }
+}
+
+async function enableUiAutomation() {
+  core.startGroup('Enable user interface automation');
+  try {
+    const terminalAppPath = '/System/Applications/Utilities/Terminal.app/';
+    const tccDatabasePath = '/Library/Application Support/com.apple.TCC/TCC.db';
+    const csreqHex = await generateCsreqHex(terminalAppPath);
+
+    const serviceName = 'kTCCServiceAccessibility';
+    const bundleId = 'com.apple.Terminal';
+    const clientType = 0;
+    const authValue = 2;
+    const authReason = 4;
+    const authVersion = 1;
+
+    const insertStatement = `INSERT or REPLACE INTO access (service, client, client_type, auth_value, auth_reason, auth_version, csreq) `+
+      `VALUES('${serviceName}','${bundleId}',${clientType},${authValue},${authReason},${authVersion},X'${csreqHex}');`;
+    const sqliteExitCode = await exec.exec('sudo', ['sqlite3', tccDatabasePath, insertStatement], {
+      ignoreReturnCode: true,
+    });
+
+    if (sqliteExitCode !== 0) {
+      core.error('Failed to enable user interface automation for Terminal.app. The TCC.db was not updated.');
+    } else {
+      core.info('Granted permission to Terminal.app to automate user interface.');
+    }
+  } finally {
+    core.endGroup();
+  }
+}
+
+async function generateCsreqHex(appPath) {
+  const tempDir = external_node_path_namespaceObject.join(external_node_os_namespaceObject.tmpdir(), external_node_crypto_.randomUUID());
+  const csreqPath = external_node_path_namespaceObject.join(tempDir, 'csreq.bin');
+
+  await io.mkdirP(tempDir);
+
+  try {
+    const { exitCode, stdout: codesignOutput } = await exec.getExecOutput('codesign', [
+      '-d',
+      '-r-',
+      appPath,
+    ]);
+
+    if (exitCode !== 0) {
+      throw new Error(`Failed to get code signature designation for '${appPath}'.`);
+    }
+
+    const designationMatch = codesignOutput.match(/designated\s*=>\s*(.+)/);
+    const appDesignation = designationMatch[1].trim();
+
+    await exec.exec('csreq', ['-r-', '-b', csreqPath], {
+      input: Buffer.from(appDesignation, 'utf8'),
+    });
+
+    const csreqBinary = external_node_fs_namespaceObject.readFileSync(csreqPath);
+    return csreqBinary.toString('hex');
+  } finally {
+    await io.rmRF(tempDir);
   }
 }
 
