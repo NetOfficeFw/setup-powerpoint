@@ -1,0 +1,63 @@
+name: verify
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+  
+permissions:
+  contents: read
+
+jobs:
+  verify-macos:
+    name: Verify on macOS runner
+    runs-on: macos-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: run setup-powerpoint
+        uses: ./
+
+  verify-ubuntu:
+    name: Verify on Ubuntu runner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: run setup-powerpoint (expected failure)
+        id: setup
+        continue-on-error: true
+        uses: ./
+
+      - name: assert action failed
+        if: ${{ !cancelled() }}
+        run: |
+          if [ "${{ steps.setup.outcome }}" != "failure" ]; then
+            echo "Action unexpectedly succeeded on a Ubuntu runner"
+            exit 1
+          fi
+          echo "Action correctly failed on Ubuntu runner"
+
+  verify-windows:
+    name: Verify on Windows runner
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: run setup-powerpoint (expected failure)
+        id: setup
+        continue-on-error: true
+        uses: ./
+
+      - name: assert action failed
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          if ("${{ steps.setup.outcome }}" -ne "failure") {
+            Write-Error "Action unexpectedly succeeded on a Windows runner"
+            exit 1
+          }
+          Write-Host "Action correctly failed on Windows runner"
