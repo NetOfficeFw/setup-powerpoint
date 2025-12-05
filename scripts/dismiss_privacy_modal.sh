@@ -8,6 +8,15 @@ set -e
 
 echo "Waiting for PowerPoint privacy modals..."
 
+close_microsoft_powerpoint_app() {
+    if pgrep -x "Microsoft PowerPoint" > /dev/null; then
+        echo "Closing Microsoft PowerPoint..."
+        osascript >/dev/null 2>&1 <<'EOF'
+tell application "Microsoft PowerPoint" to quit
+EOF
+    fi
+}
+
 # Wait up to 20 seconds for the privacy modals to appear and dismiss them
 max_attempts=20
 attempt=0
@@ -131,6 +140,7 @@ EOF
                 echo "✓ Successfully completed third screen (pressed Return)"
                 third_screen_dismissed=true
                 sleep 3
+                close_microsoft_powerpoint_app
                 exit 0
             fi
         fi
@@ -144,15 +154,19 @@ done
 
 if [[ "$first_screen_dismissed" == "true" && "$second_screen_dismissed" == "true" && "$third_screen_dismissed" == "true" ]]; then
     echo "✅ All three privacy screens successfully dismissed"
+    close_microsoft_powerpoint_app
     exit 0
 elif [[ "$first_screen_dismissed" == "true" && "$second_screen_dismissed" == "true" ]]; then
     echo "⚠ First two screens dismissed, but third screen may still be showing"
+    close_microsoft_powerpoint_app
     exit 1
 elif [[ "$first_screen_dismissed" == "true" ]]; then
     echo "⚠ First screen dismissed, but later screens may still be showing"
+    close_microsoft_powerpoint_app
     exit 1
 else
     echo "⚠ Privacy modal handling completed (timeout reached)"
     echo "Note: Modals may have been dismissed or may not have appeared"
+    close_microsoft_powerpoint_app
     exit 0
 fi
