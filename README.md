@@ -4,7 +4,7 @@
 
 ## Requirements
 
-Ths action requires macOS operating system.
+This action requires macOS operating system.
 
 ## Usage
 
