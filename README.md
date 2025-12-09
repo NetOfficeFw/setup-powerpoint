@@ -12,7 +12,7 @@ This action requires macOS operating system.
 name: PowerPoint Automation
 
 on:
-  - push:
+  push:
 
 jobs:
   powerpoint-tests:
