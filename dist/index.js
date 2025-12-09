@@ -31117,7 +31117,7 @@ async function installPowerPoint(installerPath) {
   core.startGroup('Install Microsoft PowerPoint');
   try {
     core.info('Installing Microsoft PowerPoint application...');
-    const exitCode = await exec.exec('sudo', ['installer', '-pkg', installerPath, '-target', '/Applications']);
+    const exitCode = await exec.exec('sudo', ['installer', '-pkg', installerPath, '-target', '/']);
     if (exitCode !== 0) {
       throw new Error(`Microsoft PowerPoint installation failed with code ${exitCode}.`);
     }
