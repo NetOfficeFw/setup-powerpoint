@@ -27,7 +27,7 @@ third_screen_dismissed=false
 while [ $attempt -lt $max_attempts ]; do
     # Check if PowerPoint is running
     if pgrep -x "Microsoft PowerPoint" > /dev/null; then
-        echo "PowerPoint is running (attempt $attempt/$max_attempts)..."
+        echo "PowerPoint is running (attempt $((attempt + 1))/$max_attempts)..."
         
         # Handle first screen if not yet dismissed
         if [[ "$first_screen_dismissed" == "false" ]]; then
