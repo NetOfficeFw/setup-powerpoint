@@ -19,15 +19,15 @@ EOF
 
 # Wait up to 20 seconds for the privacy modals to appear and dismiss them
 max_attempts=20
-attempt=0
+attempt=1
 first_screen_dismissed=false
 second_screen_dismissed=false
 third_screen_dismissed=false
 
-while [ $attempt -lt $max_attempts ]; do
+while [ $attempt -le $max_attempts ]; do
     # Check if PowerPoint is running
     if pgrep -x "Microsoft PowerPoint" > /dev/null; then
-        echo "PowerPoint is running (attempt $((attempt + 1))/$max_attempts)..."
+        echo "PowerPoint is running (attempt $attempt/$max_attempts)..."
         
         # Handle first screen if not yet dismissed
         if [[ "$first_screen_dismissed" == "false" ]]; then
