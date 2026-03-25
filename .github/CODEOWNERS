@@ -1,0 +1,14 @@
+# The Presentations Integrations team is the owner of the code
+* @NetOfficeFw/team-presentations-desktop
+
+# We must list individual people who are required to review code
+# so GitHub branch protection setting "Require approvals" works
+# correctly with the list of reviewers on the pull request.
+* @jozefizso @DominikPalo @m-kovac @filipbodor
+
+
+# Protect system files
+/.github/CODEOWNERS @NetOfficeFw/team-presentations-admins
+/CODE_OF_CONDUCT.* @NetOfficeFw/team-presentations-admins
+/LICENSE.* @NetOfficeFw/team-presentations-admins
+/SECURITY.* @NetOfficeFw/team-presentations-admins
